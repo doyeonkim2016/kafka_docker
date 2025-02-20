@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd="curl -f http://localhost:9092 || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        ports:
+          - 2181:2181
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Producer Dependencies and Run Tests
+      working-directory: ./producer
+      run: |
+        pip install -r requirements.txt
+        python -m unittest discover tests
+
+    - name: Install Consumer Dependencies and Run Tests
+      working-directory: ./consumer
+      run: |
+        pip install -r requirements.txt
+        python -m unittest discover tests
+
+    - name: Build Producer Docker Image
+      run: |
+        docker build -t my-kafka-producer ./producer
+
+    - name: Build Consumer Docker Image
+      run: |
+        docker build -t my-kafka-consumer ./consumer
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+    - name: Build and Push Producer Image
+      run: |
+        docker build -t my-kafka-producer ./producer
+        docker tag my-kafka-producer your-dockerhub-username/my-kafka-producer:latest
+        docker push your-dockerhub-username/my-kafka-producer:latest
+
+    - name: Build and Push Consumer Image
+      run: |
+        docker build -t my-kafka-consumer ./consumer
+        docker tag my-kafka-consumer your-dockerhub-username/my-kafka-consumer:latest
+        docker push your-dockerhub-username/my-kafka-consumer:latest
