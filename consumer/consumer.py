@@ -10,6 +10,7 @@ def create_consumer():
         TOPIC,
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
         auto_offset_reset='earliest',
+        api_version =(0,11,5),
         value_deserializer=lambda m: json.loads(m.decode('utf-8'))
     )
 
