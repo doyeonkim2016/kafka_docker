@@ -43,19 +43,19 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-        
+
     - name: Wait for Kafka to be ready
-        run: |
-          for i in {1..10}; do
-            echo "Checking if Kafka is available (attempt $i)..."
-            if nc -z kafka 9092; then
-              echo "Kafka is up!"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "Kafka did not start in time."
-          exit 1
+      run: |
+        for i in {1..10}; do
+          echo "Checking if Kafka is available (attempt $i)..."
+          if nc -z kafka 9092; then
+            echo "Kafka is up!"
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "Kafka did not start in time."
+        exit 1
 
     - name: Install Producer Dependencies and Run Tests
       working-directory: ./producer
