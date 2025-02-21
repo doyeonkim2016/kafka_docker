@@ -5,24 +5,36 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     services:
-      kafka:
-        image: confluentinc/cp-kafka:latest
-        ports:
-          - 9092:9092
-        options: >-
-          --health-cmd="curl -f http://localhost:9092 || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
       zookeeper:
         image: confluentinc/cp-zookeeper:latest
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
         ports:
           - 2181:2181
+
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        env:
+          # Required environment variables for Confluent Kafka
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        ports:
+          - 9092:9092
+        # Either remove the health check or replace it with a TCP-based check
+        # The default 'curl -f http://localhost:9092' won't work because
+        # Kafka doesn't speak HTTP on port 9092.
+        # options: >-
+        #   --health-cmd="nc -z localhost 9092 || exit 1"
+        #   --health-interval=10s
+        #   --health-timeout=5s
+        #   --health-retries=5
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
