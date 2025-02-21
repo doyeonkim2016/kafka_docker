@@ -9,6 +9,7 @@ TOPIC = "events"
 def create_producer():
     return KafkaProducer(
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+        api_version =(0,11,5),
         value_serializer=lambda v: json.dumps(v).encode('utf-8')
     )
 
