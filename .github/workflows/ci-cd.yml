@@ -80,11 +80,11 @@ jobs:
     - name: Build and Push Producer Image
       run: |
         docker build -t my-kafka-producer ./producer
-        docker tag my-kafka-producer your-dockerhub-username/my-kafka-producer:latest
-        docker push your-dockerhub-username/my-kafka-producer:latest
+        docker tag my-kafka-producer doyeon/my-kafka-producer:latest
+        docker push doyeon/my-kafka-producer:latest
 
     - name: Build and Push Consumer Image
       run: |
         docker build -t my-kafka-consumer ./consumer
-        docker tag my-kafka-consumer your-dockerhub-username/my-kafka-consumer:latest
-        docker push your-dockerhub-username/my-kafka-consumer:latest
+        docker tag my-kafka-consumer doyeon/my-kafka-consumer:latest
+        docker push doyeon/my-kafka-consumer:latest
